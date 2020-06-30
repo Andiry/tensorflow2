@@ -23,8 +23,9 @@ class mnist_model(object):
     with tf.GradientTape() as tape:
       h1 = tf.nn.relu(x @ self.w1 + self.b1)
       h2 = tf.nn.relu(h1 @ self.w2 + self.b2)
-      out = tf.nn.softmax(h2 @ self.w3 + self.b3, axis=1)
-      loss = tf.reduce_mean(tf.square(y - out))
+      out = h2 @ self.w3 + self.b3
+      loss = keras.losses.categorical_crossentropy(y, out, from_logits=True)
+      loss = tf.reduce_mean(loss)
 
     grads = tape.gradient(loss, [self.w1, self.b1, self.w2, self.b2, self.w3, self.b3])
     self.w1.assign_sub(self.lr * grads[0])
