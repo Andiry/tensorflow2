@@ -11,11 +11,11 @@ from tensorflow.keras import datasets
 
 class mnist_model(object):
   def __init__(self):
-    self.w1 = tf.Variable(tf.random.uniform([784, 256]))
+    self.w1 = tf.Variable(tf.random.normal([784, 256], stddev=0.1))
     self.b1 = tf.Variable(tf.zeros([256]))
-    self.w2 = tf.Variable(tf.random.uniform([256, 128]))
+    self.w2 = tf.Variable(tf.random.normal([256, 128], stddev=0.1))
     self.b2 = tf.Variable(tf.zeros([128]))
-    self.w3 = tf.Variable(tf.random.uniform([128, 10]))
+    self.w3 = tf.Variable(tf.random.normal([128, 10], stddev=0.1))
     self.b3 = tf.Variable(tf.zeros([10]))
     self.lr = 0.01
 
@@ -73,11 +73,7 @@ def train(train_db, eval_db):
     for step, (x, y) in enumerate(train_db):
       out, loss = model.train(x, y)
       if step % 100 == 0:
-        pred = tf.argmax(out, axis=1)
-        y = tf.argmax(y, axis=1)
-        correct = tf.equal(pred, y)
-        correct = tf.reduce_sum(tf.cast(correct, dtype=tf.int32)).numpy()
-        print('Step ', step, ' loss: ', loss.numpy(), ' correct: ', correct)
+        print('Step ', step, ' loss: ', loss.numpy())
       if step % 500 == 0:
         model.eval(eval_db)
 
