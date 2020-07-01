@@ -42,6 +42,7 @@ def train(train_db, eval_db):
                               validation_freq=5)
   print(model.network.summary())
   print(history.history)
+  tf.saved_model.save(model.network, 'saved_model')
 
 
 def main():
