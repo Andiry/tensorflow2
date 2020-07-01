@@ -27,9 +27,11 @@ class mnist_conv2d_model(object):
   def __init__(self):
     self.network = keras.Sequential([
         layers.Conv2D(6, kernel_size=3, strides=1),
+        layers.BatchNormalization(),
         layers.MaxPooling2D(pool_size=2, strides=2),
         layers.ReLU(),
         layers.Conv2D(16, kernel_size=3, strides=1),
+        layers.BatchNormalization(),
         layers.MaxPooling2D(pool_size=2, strides=2),
         layers.ReLU(),
         layers.Flatten(),
