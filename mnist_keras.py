@@ -6,6 +6,7 @@ TODO(andiryxu): DO NOT SUBMIT without a detailed description of mnist.
 
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.python.eager import context
 from tensorflow.keras import datasets,optimizers,layers
 
 
@@ -73,11 +74,15 @@ def train(train_db, eval_db, using_conv2d):
     model = mnist_conv2d_model()
   else:
     model = mnist_dense_model()
+  context.enable_run_metadata()
   history = model.network.fit(train_db, epochs=10, validation_data=eval_db,
                               validation_freq=5)
+  run_metadata = context.export_run_metadata()
+  context.disable_run_metadata()
   print(model.network.summary())
   print(history.history)
   tf.saved_model.save(model.network, 'saved_model')
+  print("StepStats: ", run_metadata.step_stats)
 
 
 def main():
