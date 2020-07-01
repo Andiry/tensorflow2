@@ -13,6 +13,7 @@ class mnist_model(object):
   def __init__(self):
     self.network = keras.Sequential([
         layers.Dense(256, activation='relu'),
+        layers.Dropout(rate=0.5),
         layers.Dense(128, activation='relu'),
         layers.Dense(64, activation='relu'),
         layers.Dense(32, activation='relu'),
