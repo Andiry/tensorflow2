@@ -16,23 +16,28 @@ class mnist_vgg13_model(object):
         layers.Conv2D(64, kernel_size=3, padding='same', strides=1, activation='relu'),
         layers.Conv2D(64, kernel_size=3, padding='same', strides=1, activation='relu'),
         layers.MaxPooling2D(pool_size=2, strides=2, padding='same'),
+
         layers.Conv2D(128, kernel_size=3, padding='same', strides=1, activation='relu'),
         layers.Conv2D(128, kernel_size=3, padding='same', strides=1, activation='relu'),
         layers.MaxPooling2D(pool_size=2, strides=2, padding='same'),
+
         layers.Conv2D(256, kernel_size=3, padding='same', strides=1, activation='relu'),
         layers.Conv2D(256, kernel_size=3, padding='same', strides=1, activation='relu'),
         layers.MaxPooling2D(pool_size=2, strides=2, padding='same'),
+
         layers.Conv2D(512, kernel_size=3, padding='same', strides=1, activation='relu'),
         layers.Conv2D(512, kernel_size=3, padding='same', strides=1, activation='relu'),
         layers.MaxPooling2D(pool_size=2, strides=2, padding='same'),
+
         layers.Conv2D(512, kernel_size=3, padding='same', strides=1, activation='relu'),
         layers.Conv2D(512, kernel_size=3, padding='same', strides=1, activation='relu'),
         layers.MaxPooling2D(pool_size=2, strides=2, padding='same'),
+
         layers.Flatten(),
         layers.Dense(256, activation='relu'),
         layers.Dense(128, activation='relu'),
         layers.Dense(10)])
-    self.network.compile(optimizer=optimizers.Adam(lr=0.01),
+    self.network.compile(optimizer=optimizers.Adam(lr=0.0001),
                          loss=keras.losses.CategoricalCrossentropy(from_logits=True),
                          metrics=['accuracy'])
 
