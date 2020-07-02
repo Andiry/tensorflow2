@@ -10,7 +10,7 @@ from tensorflow.python.eager import context
 from tensorflow.keras import datasets,optimizers,layers
 
 
-class mnist_vgg13_model(object):
+class vgg13_model(object):
   def __init__(self):
     self.network = keras.Sequential([
         layers.Conv2D(64, kernel_size=3, padding='same', strides=1, activation='relu'),
@@ -56,7 +56,7 @@ def create_db(x, y):
 
 
 def train(train_db, eval_db):
-  model = mnist_vgg13_model()
+  model = vgg13_model()
   context.enable_run_metadata()
   history = model.network.fit(train_db, epochs=10, validation_data=eval_db,
                               validation_freq=5)
