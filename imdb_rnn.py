@@ -34,8 +34,8 @@ class MyRNN(keras.Model):
         # [b, 80] -> [b, 80, 100]
         self.embedding = layers.Embedding(total_words, embedding_len,
                 input_length = max_len)
-        self.rnn_cell0 = layers.SimpleRNNCell(units, dropout = 0.5)
-        self.rnn_cell1 = layers.SimpleRNNCell(units, dropout = 0.5)
+        self.rnn_cell0 = layers.GRUCell(units, dropout = 0.5)
+        self.rnn_cell1 = layers.GRUCell(units, dropout = 0.5)
         # [b, 80, 100] -> [b, 64] -> [b, 1]
         self.out_layer = layers.Dense(1)
 
