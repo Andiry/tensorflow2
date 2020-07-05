@@ -66,12 +66,39 @@ class Discriminator(keras.Model):
         return x
 
 
+def gradient_penalty(discriminator, bs_x, fake_image):
+    bs = bs_x.shape[0]
+    t = tf.random.uniform([bs, 1, 1, 1])
+    t = tf.broadcast_to(t, bs_x.shape)
+    interplate = t * bs_x + (1 - t) * fake_image
+    with tf.GradientTape() as tape:
+        tape.watch([interplate])
+        d_logits = discriminator(interplate, training=True)
+    grads = tape.gradient(d_logits, interplate)
+
+    # [b, h, w, c] -> [b, -1]
+    grads = tf.reshape(grads, [grads.shape[0], -1])
+    gp = tf.norm(grads, axis=1) #[b]
+    return tf.reduce_mean((gp - 1.0) ** 2)
+
+
+def celoss_ones(logits):
+    return -tf.reduce_mean(logits)
+
+
+def celoss_zeros(logits):
+    return tf.reduce_mean(logits)
+
+
 def d_loss_fn(generator, discriminator, bs_z, bs_x, is_training):
     fake_image = generator(bs_z, is_training)
     d_fake_logits = discriminator(fake_image, is_training)
     d_real_logits = discriminator(bs_x, is_training)
+
+    d_loss_real = celoss_ones(d_real_logits)
+    d_loss_fake = celoss_zeros(d_fake_images)
     gp = gradient_penalty(discriminator, bs_x, fake_image)
-    loss = tf.reduce_mean(d_fake_logits) - tf.reduce_mean(d_real_logits) + gp * 1.0
+    loss = d_loss_real + d_loss_fake + gp * 10.0
     return loss
 
 
@@ -118,27 +145,12 @@ def post_result(val_out, val_block_size, img_path, color_mode):
     Image.fromarray(final_image).save(img_path)
 
 
-def gradient_penalty(discriminator, bs_x, fake_image):
-    bs = bs_x.shape[0]
-    t = tf.random.uniform([bs, 1, 1, 1])
-    t = tf.broadcast_to(t, bs_x.shape)
-    interplate = t * bs_x + (1 - t) * fake_image
-    with tf.GradientTape() as tape:
-        tape.watch([interplate])
-        d_logits = discriminator(interplate)
-    grads = tape.gradient(d_logits, interplate)
-
-    # [b, h, w, c] -> [b, -1]
-    grads = tf.reshape(grads, [grads.shape[0], -1])
-    gp = tf.norm(grads, axis=1) #[b]
-    return tf.reduce_mean((gp - 1.0) ** 2)
-
 
 def main():
     z_dim = 100
     epochs = 3000000
-    bs = 64
-    lr = 0.0002
+    bs = 512
+    lr = 0.0005
     is_training = True
     generator = Generator()
     discriminator = Discriminator()
@@ -157,7 +169,6 @@ def main():
             d_optimizer.apply_gradients(zip(grads, discriminator.trainable_variables))
 
         bs_z = tf.random.normal([bs, z_dim])
-        bs_x = next(db_iter)
         with tf.GradientTape() as tape:
             g_loss = g_loss_fn(generator, discriminator, bs_z, is_training)
         grads = tape.gradient(g_loss, generator.trainable_variables)
