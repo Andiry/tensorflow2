@@ -1,3 +1,4 @@
+import os
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.python.eager import context
@@ -5,7 +6,7 @@ from tensorflow.keras import datasets,optimizers,layers,losses
 import glob
 import numpy as np
 from dataset import make_anime_dataset
-from scipy.misc import toimage
+from PIL import Image
 
 
 class Generator(keras.Model):
@@ -106,7 +107,8 @@ def create_dataset(bs):
 
 def post_result(val_out, val_block_size, img_path, color_mode):
     def preprocess(img):
-        imge = ((img + 1.0) * 127.5).astype(np.uint8)
+        img = ((img + 1.0) * 127.5).astype(np.uint8)
+        return img
 
     preprocessed = preprocess(val_out)
     final_image = np.array([])
@@ -126,7 +128,7 @@ def post_result(val_out, val_block_size, img_path, color_mode):
 
     if final_image.shape[2] == 1:
         final_image = np.squeeze(final_image, axis=2)
-    toimage(final_image).save(img_path)
+    Image.fromarray(final_image).save(img_path)
 
 
 def main():
@@ -143,7 +145,7 @@ def main():
     db_iter = create_dataset(bs)
 
     for epoch in range(epochs):
-        for _ in range(5):
+        for _ in range(1):
             bs_z = tf.random.normal([bs, z_dim])
             bs_x = next(db_iter)
             with tf.GradientTape() as tape:
@@ -159,7 +161,7 @@ def main():
         g_optimizer.apply_gradients(zip(grads, generator.trainable_variables))
 
         if epoch % 100 == 0:
-            print('Epoch ', epoch, ', d-loss: ', d_loss.numpy(), ' g-loss: ', g_loss.numpy())
+            print('Epoch', epoch, ', d-loss:', d_loss.numpy(), 'g-loss:', g_loss.numpy())
             z = tf.random.normal([100, z_dim])
             fake_image = generator(z, training=False)
             img_path = os.path.join('gan-images', 'gan-%d.png' % epoch)
