@@ -3,7 +3,9 @@ from tensorflow import keras
 from tensorflow.python.eager import context
 from tensorflow.keras import datasets,optimizers,layers,losses
 import glob
+import numpy as np
 from dataset import make_anime_dataset
+from scipy.misc import toimage
 
 
 class Generator(keras.Model):
@@ -87,7 +89,7 @@ def celoss_zeros(logits):
 
 def g_loss_fn(generator, discriminator, bs_z, is_training):
     fake_image = generator(bs_z, is_training)
-    d_fake_logits = discrimiator(fake_image, is_training)
+    d_fake_logits = discriminator(fake_image, is_training)
     loss = celoss_ones(d_fake_logits)
     return loss
 
@@ -99,11 +101,37 @@ def create_dataset(bs):
     print(dataset, img_shape)
     dataset = dataset.repeat(100)
     db_iter = iter(dataset)
+    return db_iter
+
+
+def post_result(val_out, val_block_size, img_path, color_mode):
+    def preprocess(img):
+        imge = ((img + 1.0) * 127.5).astype(np.uint8)
+
+    preprocessed = preprocess(val_out)
+    final_image = np.array([])
+    single_row = np.array([])
+    for b in range(val_out.shape[0]):
+        if single_row.size == 0:
+            single_row = preprocessed[b, :, :, :]
+        else:
+            single_row = np.concatenate((single_row, preprocessed[b, :, :, :]), axis=1)
+
+        if (b + 1) % val_block_size == 0:
+            if final_image.size == 0:
+                final_image = single_row
+            else:
+                final_image = np.concatenate((final_image, single_row), axis=0)
+            single_row = np.array([])
+
+    if final_image.shape[2] == 1:
+        final_image = np.squeeze(final_image, axis=2)
+    toimage(final_image).save(img_path)
 
 
 def main():
     z_dim = 100
-    epoches = 3000000
+    epochs = 3000000
     bs = 64
     lr = 0.0002
     is_training = True
@@ -111,9 +139,6 @@ def main():
     discriminator = Discriminator()
     g_optimizer = optimizers.Adam(learning_rate=lr, beta_1=0.5)
     d_optimizer = optimizers.Adam(learning_rate=lr, beta_1=0.5)
-
-    generator.load_weights('generator.ckpt')
-    discriminator.load_weights('discriminator.ckpt')
 
     db_iter = create_dataset(bs)
 
@@ -134,10 +159,11 @@ def main():
         g_optimizer.apply_gradients(zip(grads, generator.trainable_variables))
 
         if epoch % 100 == 0:
-            print(epoch, 'd-loss: ', d_loss.numpy(), ' g-loss: ', g_loss.numpy())
+            print('Epoch ', epoch, ', d-loss: ', d_loss.numpy(), ' g-loss: ', g_loss.numpy())
             z = tf.random.normal([100, z_dim])
             fake_image = generator(z, training=False)
-            post_result(fake_image.numpy(), 10, color_mode='P')
+            img_path = os.path.join('gan-images', 'gan-%d.png' % epoch)
+            post_result(fake_image.numpy(), 10, img_path, color_mode='P')
             
         if epoch % 10000 == 1:
             generator.save_weights('generator.ckpt')
