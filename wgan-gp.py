@@ -114,7 +114,7 @@ def create_dataset(bs):
     print('images: ', len(img_path))
     dataset, img_shape, _ = make_anime_dataset(img_path, bs, resize=64)
     print(dataset, img_shape)
-    dataset = dataset.repeat(100)
+    dataset = dataset.repeat()
     db_iter = iter(dataset)
     return db_iter
 
