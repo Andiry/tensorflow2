@@ -96,7 +96,7 @@ def d_loss_fn(generator, discriminator, bs_z, bs_x, is_training):
     d_real_logits = discriminator(bs_x, is_training)
 
     d_loss_real = celoss_ones(d_real_logits)
-    d_loss_fake = celoss_zeros(d_fake_images)
+    d_loss_fake = celoss_zeros(d_fake_logits)
     gp = gradient_penalty(discriminator, bs_x, fake_image)
     loss = d_loss_real + d_loss_fake + gp * 10.0
     return loss
