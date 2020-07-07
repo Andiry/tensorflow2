@@ -2,12 +2,14 @@ import tensorflow.compat.v1 as tf
 
 
 def main():
+    tf.disable_eager_execution()
+
     with tf.device('/gpu:0'):
-        t1 = tf.random_uniform(shape=[32, 56, 56, 64], dtype=tf.half)
-        t2 = tf.random_uniform(shape=[3, 3, 64, 64], dtype=tf.half)
+        t1 = tf.random.uniform(shape=[32, 56, 56, 64], dtype=tf.half)
+        t2 = tf.random.uniform(shape=[3, 3, 64, 64], dtype=tf.half)
         t = tf.nn.conv2d(
                 input=t1,
-                filter=t2,
+                filters=t2,
                 strides=[2, 2],
                 padding='SAME',
                 data_format='NHWC',
@@ -24,8 +26,8 @@ def main():
         _ = sess.run([t], options=run_options, run_metadata=run_metadata)
 
     for node in run_metadata.cost_graph.node:
-        print(node.name)
-        print(node.compute_cost * 1000)
+        if node.name == 'Conv2D':
+            print(node.name, ':', node.compute_cost * 1000, 'ns.')
 
 
 if __name__ == '__main__':
