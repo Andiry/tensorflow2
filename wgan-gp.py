@@ -68,7 +68,7 @@ class Discriminator(keras.Model):
 
 def gradient_penalty(discriminator, bs_x, fake_image):
     bs = bs_x.shape[0]
-    t = tf.random.uniform([bs, 1, 1, 1])
+    t = tf.random.uniform([bs, 1, 1, 1], dtype=tf.float32)
     t = tf.broadcast_to(t, bs_x.shape)
     interplate = t * bs_x + (1 - t) * fake_image
     with tf.GradientTape() as tape:
