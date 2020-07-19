@@ -57,6 +57,9 @@ data_loader = DataLoader()
 model = RNN(len(data_loader.chars), batch_size, seq_length)
 optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
+summary_writer = tf.summary.create_file_writer('/tmp/tensorboard')
+tf.summary.trace_on(graph=True, profiler=True)
+
 for batch_index in range(num_batches):
     X, y = data_loader.get_batch(seq_length, batch_size)
     with tf.GradientTape() as tape:
@@ -68,6 +71,9 @@ for batch_index in range(num_batches):
 
     if batch_index % 100 == 0:
         print('Batch %d: loss %f' % (batch_index, loss.numpy()))
+
+with summary_writer.as_default():
+    tf.summary.trace_export(name='model_trace', step=0, profiler_outdir='/tmp/tensorboard')
 
 x_, _ = data_loader.get_batch(seq_length, 1)
 for diversity in [0.2, 0.5, 1.0, 1.2]:
