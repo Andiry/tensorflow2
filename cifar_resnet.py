@@ -88,7 +88,7 @@ def resnet34():
   return ResNet([3, 4, 6, 3])
 
 
-def create_db(x, y):
+def create_db(strategy, x, y):
   def preprocess(x, y):
     x = tf.cast(x, dtype=tf.float32) / 255.0
     y = tf.squeeze(y, axis=1)
@@ -96,32 +96,37 @@ def create_db(x, y):
     return x, y
 
   db = tf.data.Dataset.from_tensor_slices((x, y))
-  db = db.shuffle(10000).batch(128)
+  batch_size = 128 * strategy.num_replicas_in_sync
+  db = db.shuffle(10000).batch(batch_size)
   db = db.map(preprocess)
   return db
 
 
-def train(train_db, eval_db):
-  model = resnet34()
-  context.enable_run_metadata()
-  history = model.fit(train_db, epochs=10, validation_data=eval_db,
-                      validation_freq=5)
-  run_metadata = context.export_run_metadata()
-  context.disable_run_metadata()
-  print(model.summary())
-  print(history.history)
-  tf.saved_model.save(model, 'saved_model')
-  print("StepStats: ", run_metadata.step_stats)
+def train(strategy, train_db, eval_db):
+  with strategy.scope():
+    model = resnet34()
+    context.enable_run_metadata()
+    history = model.fit(train_db, epochs=10, validation_data=eval_db,
+                        validation_freq=5)
+    run_metadata = context.export_run_metadata()
+    context.disable_run_metadata()
+    print(model.summary())
+    print(history.history)
+#    tf.saved_model.save(model, 'saved_model')
+    print("StepStats: ", run_metadata.step_stats)
 
 
 def main():
   (x, y), (x_test, y_test) = datasets.cifar10.load_data()
   print('x:', x.shape, 'y:', y.shape, 'x test:', x_test.shape, 'y test:', y_test)
 
-  train_db = create_db(x, y)
-  eval_db = create_db(x_test, y_test)
+  strategy = tf.distribute.MirroredStrategy()
+  print('Number of devices: %d' % strategy.num_replicas_in_sync)
 
-  train(train_db, eval_db)
+  train_db = create_db(strategy, x, y)
+  eval_db = create_db(strategy, x_test, y_test)
+
+  train(strategy, train_db, eval_db)
 
 
 if __name__ == '__main__':
