@@ -60,15 +60,19 @@ optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 summary_writer = tf.summary.create_file_writer('/tmp/tensorboard')
 tf.summary.trace_on(graph=True, profiler=True)
 
-for batch_index in range(num_batches):
-    X, y = data_loader.get_batch(seq_length, batch_size)
+@tf.function
+def train_one_step(x, y):
     with tf.GradientTape() as tape:
         y_pred = model(X, from_logits=True)
         loss = tf.keras.losses.sparse_categorical_crossentropy(y, y_pred, from_logits=True)
         loss = tf.reduce_mean(loss)
     grads = tape.gradient(loss, model.trainable_variables)
     optimizer.apply_gradients(zip(grads, model.trainable_variables))
+    return loss
 
+for batch_index in range(num_batches):
+    X, y = data_loader.get_batch(seq_length, batch_size)
+    loss = train_one_step(X, y)
     if batch_index % 100 == 0:
         print('Batch %d: loss %f' % (batch_index, loss.numpy()))
 
