@@ -7,8 +7,8 @@ from tensorflow.keras import datasets,optimizers,layers,losses
 class MatMulModel(keras.Model):
     def __init__(self, dimension):
         super(MatMulModel, self).__init__()
-        self.w = tf.random.uniform([dimension, dimension], dtype=tf.float16)
-#        self.w = tf.zeros([dimension, dimension], dtype=tf.float16)
+#        self.w = tf.random.uniform([dimension, dimension], dtype=tf.float16)
+        self.w = tf.zeros([dimension, dimension], dtype=tf.float16)
 
     @tf.function
     def call(self, inputs, training=None):
@@ -34,6 +34,7 @@ def main():
         z = model.call(x)
         tf.summary.trace_export(name="model_trace", step=0, profiler_outdir=logdir)
 
+    print(z.numpy())
 
 if __name__ == '__main__':
     main()
