@@ -13,11 +13,11 @@ from tensorflow.keras import datasets,optimizers,layers
 class mnist_dense_model(object):
   def __init__(self):
     self.network = keras.Sequential([
-        layers.Dense(256, activation='relu'),
-        layers.Dropout(rate=0.5),
-        layers.Dense(128, activation='relu'),
-        layers.Dense(64, activation='relu'),
-        layers.Dense(32, activation='relu'),
+        layers.Dense(1024, activation='relu'),
+#        layers.Dropout(rate=0.5),
+        layers.Dense(1024, activation='relu'),
+        layers.Dense(1024, activation='relu'),
+        layers.Dense(1024, activation='relu'),
         layers.Dense(10)])
     self.network.compile(optimizer=optimizers.Adam(lr=0.01),
                          loss=keras.losses.CategoricalCrossentropy(from_logits=True),
@@ -75,9 +75,10 @@ def train(train_db, eval_db, using_conv2d):
   else:
     model = mnist_dense_model()
   context.enable_run_metadata()
+  tb_callback = tf.keras.callbacks.TensorBoard(log_dir='/tmp/test')
   history = model.network.fit(train_db, epochs=10, validation_data=eval_db,
-                              validation_freq=5)
-  run_metadata = context.export_run_metadata()
+                              validation_freq=5, callbacks=[tb_callback])
+  run_metadata = context.export_run_metadata() 
   context.disable_run_metadata()
   print(model.network.summary())
   print(history.history)
