@@ -10,11 +10,11 @@ import time
 
 # 下载文件
 # http://www.manythings.org/anki/
-path_to_zip = tf.keras.utils.get_file(
-    'spa-eng.zip', origin='http://storage.googleapis.com/download.tensorflow.org/data/spa-eng.zip',
-    extract=True)
+#path_to_zip = tf.keras.utils.get_file(
+#    'cma-eng.zip', origin='http://www.manythings.org/anki/cmn-eng.zip',
+#    extract=True)
 
-path_to_file = os.path.dirname(path_to_zip)+"/spa-eng/spa.txt"
+path_to_file = "./data/cmn.txt"
 
 def unicode_to_ascii(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
@@ -25,11 +25,11 @@ def preprocess_sentence(w):
     # 在单词与跟在其后的标点符号之间插入一个空格
     # 例如： "he is a boy." => "he is a boy ."
     # 参考：https://stackoverflow.com/questions/3645931/python-padding-punctuation-with-white-spaces-keeping-punctuation
-    w = re.sub(r"([?.!,¿])", r" \1 ", w)
+    w = re.sub(r"([。.!,¿])", r" \1 ", w)
     w = re.sub(r'[" "]+', " ", w)
 
     # 除了 (a-z, A-Z, ".", "?", "!", ",")，将所有字符替换为空格
-    w = re.sub(r"[^a-zA-Z?.!,¿]+", " ", w)
+ #   w = re.sub(r"[^a-zA-Z?.!,¿]+", " ", w)
 
     w = w.rstrip().strip()
 
@@ -39,17 +39,24 @@ def preprocess_sentence(w):
     return w
 
 en_sentence = u"May I borrow this book?"
-sp_sentence = u"¿Puedo tomar prestado este libro?"
+sp_sentence = ' '.join(list(u"我能借这本书吗?"))
 print(preprocess_sentence(en_sentence))
 print(preprocess_sentence(sp_sentence).encode('utf-8'))
 
 # 1. 去除重音符号
 # 2. 清理句子
-# 3. 返回这样格式的单词对：[ENGLISH, SPANISH]
+# 3. 返回这样格式的单词对：[ENGLISH, CHINESE]
 def create_dataset(path, num_examples):
     lines = io.open(path, encoding='UTF-8').read().strip().split('\n')
 
-    word_pairs = [[preprocess_sentence(w) for w in l.split('\t')]  for l in lines[:num_examples]]
+    word_pairs = []
+    for l in lines[:num_examples]:
+        w = l.split('\t')
+        word_pairs.append([
+            preprocess_sentence(w[0]),
+            preprocess_sentence(' '.join(list(w[1])))
+        ])
+#    word_pairs = [[preprocess_sentence(w) for w in l.split('\t')[:2]]  for l in lines[:num_examples]]
 
     return zip(*word_pairs)
 
@@ -314,4 +321,6 @@ def translate(sentence):
     print('Input: %s' % sentence)
     print('Predicted translation: {}'.format(result))
 
-translate(u'hace mucho frio aqui.')
+translate(' '.join(list(u'今天好冷。')))
+translate(' '.join(list(u'我爱中国。')))
+translate(' '.join(list(u'美国是个很富有的国家。')))
