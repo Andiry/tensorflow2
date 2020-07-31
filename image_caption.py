@@ -331,7 +331,7 @@ def evaluate(image):
 
     return result
 
-#train()
+train()
 
 rid = np.random.randint(0, len(img_name_val))
 image = img_name_val[rid]
@@ -347,5 +347,9 @@ image_extension = image_url[-4:]
 image_path = tf.keras.utils.get_file('image'+image_extension,
                                      origin=image_url)
 
+result = evaluate(image_path)
+print ('Prediction Caption:', ' '.join(result))
+
+image_path = './data/T34.jpg'
 result = evaluate(image_path)
 print ('Prediction Caption:', ' '.join(result))
